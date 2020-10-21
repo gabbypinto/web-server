@@ -49,27 +49,25 @@ void *client_handler(void *arg)
 {
 
     char msg[100];
-
     int sockfd;
-
     sockfd = *(int *)arg;
+    char* input;
+    char* path;
+    char* fname;
 
 
-
-    if (read(sockfd, msg, 100) > 0) {
-
+    if (read(sockfd, msg, 100) > 0)
+    {
+        msg[strlen(msg)-1] = '\0';
         //grabbing input
-        char* input;
-        char* path;
-        char* fname;
-        input = (char*)malloc(25*sizeof(char));
-        for(int i=0; i<25;i++){
-          scanf("%c",input+i);
-        }
+        //input = (char*)malloc(25*sizeof(char));
+      //  for(int i=0; i<25;i++){
+          //scanf("%c",input+i);
+      //  }
 
         //parse http request....in client_handler???
         //printf("%s",parse(input));
-        path = parse(input);
+        path = parse(msg);
         //printf("path:%s\n", path);
         //ensure well formatted request (later)
         fname=removeSlash(path);
@@ -77,49 +75,43 @@ void *client_handler(void *arg)
 
         //dettermine if target file exists = index.html
         if( access(fname, F_OK ) != -1 ) {        // file exists
-          printf("exists");
+          printf("exists\n");
         } else {    // file doesn't exist
-          printf("doesn't exists");
+          printf("doesn't exists\n");
         }
 
   ///
         long fsize;
         FILE *f = fopen("index.html", "rb");
         if (!f){
-            perror("The file was not opened");
+            perror("The file was not opened\n");
             exit(1);
         }
         else{
-          printf("opened");
+          printf("opened\n");
         }
 
-
-        fsize = ftell(f);
-        if (fsize == -1) {
-            perror("The file size was not retrieved");
-            exit(1);
-        }
-        rewind(f);
+//fread
+        // fsize = ftell(f);
+        // if (fsize == -1) {
+        //     perror("The file size was not retrieved");
+        //     exit(1);
+        // }
+        // rewind(f);
+        char data[100];
 
         char *msg = (char*) malloc(fsize);
-        if (fread(msg, fsize, 1, f) != 1){
-            perror("The file was not read\n");
-            exit(1);
+        while (fgets(data,100,f) != NULL){
+          /* echo message back to client */
+          printf("%s",data);
+          write(sockfd, data, strlen(data));
+
         }
+        printf("\n");
+        //printf("Received message: %s \n", msg);
         fclose(f);
-
-
-
-        /* echo message back to client */
-        write(sockfd, msg, strlen(msg));
     }
-
-//
-    msg[strlen(msg)-1] = '\0';
-    printf("Received message: %s \n", msg);
-//
     close(sockfd);
-
 }
 
 int main(int argc, char *argv[])

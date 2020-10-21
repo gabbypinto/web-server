@@ -13,7 +13,7 @@ int main(int argc , char *argv[])
 
     int sockfd, n;
     struct sockaddr_in addr;
-    char client_msg[80], server_msg[80];
+    char client_msg[100], server_msg[100];
 
     if (argc != 3) {
         printf("Usage: %s <ip-address> <port> \n", argv[0]);
@@ -41,7 +41,7 @@ int main(int argc , char *argv[])
     printf("Connected to server: %d \n", argv[1]);
 
     printf("Enter Client Message: \n");
-    fgets(client_msg, 80, stdin);
+    fgets(client_msg, 100, stdin);
 
     //Send some data
     if (write(sockfd, client_msg , strlen(client_msg)) < 0) {
@@ -50,8 +50,8 @@ int main(int argc , char *argv[])
         return -1;
      }
 
-     //Receive a reply from the server
-     if (read(sockfd, server_msg, 80) < 0) {
+     //Receive a reply from the server....modify. read till end
+     if (read(sockfd, server_msg, 100) < 0) {
          printf("Recv failed \n");
          close(sockfd);
          return -1;
