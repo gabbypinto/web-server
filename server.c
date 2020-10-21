@@ -13,7 +13,7 @@
 //include... thread2.c
 
 
-void *client_handler(void *arg)  //modify this bad boi
+void *client_handler(void *arg)  //only modify this?
 {
 
     char msg[80];
@@ -129,9 +129,9 @@ int main(int argc, char *argv[])
 
       //dettermine if target file exists = index.html
       if( access(fname, F_OK ) != -1 ) {        // file exists
-        printf("hola");
+        printf("exists");
       } else {    // file doesn't exist
-        printf("triste");
+        printf("doesn't exists");
       }
 
 ///
