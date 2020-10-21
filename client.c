@@ -9,30 +9,6 @@
 #include <arpa/inet.h>
 
 
-int parse(const char* line)
-{
-    /* Find out where everything is */
-    const char *start_of_path = strchr(line, ' ') + 1;
-    const char *start_of_query = strchr(start_of_path, '?');
-    const char *end_of_query = strchr(start_of_query, ' ');
-
-    /* Get the right amount of memory */
-    char path[start_of_query - start_of_path];
-    char query[end_of_query - start_of_query];
-
-    /* Copy the strings into our memory */
-    strncpy(path, start_of_path,  start_of_query - start_of_path);
-    strncpy(query, start_of_query, end_of_query - start_of_query);
-
-    /* Null terminators (because strncpy does not provide them) */
-    path[sizeof(path)] = 0;
-    query[sizeof(query)] = 0;
-
-    /*Print */
-    printf("%s\n", query, sizeof(query));
-    printf("%s\n", path, sizeof(path));
-}
-
 int main(int argc , char *argv[])
 {
 
@@ -62,4 +38,29 @@ int main(int argc , char *argv[])
         perror("connect failed. Error");
         return 1;
     }
+
+    printf("Connected to server: %d \n", argv[1]);
+
+    printf("Enter Client Message: \n");
+    fgets(client_msg, 80, stdin);
+
+    //Send some data
+    if (write(sockfd, client_msg , strlen(client_msg)) < 0) {
+        printf("Send to socket failed \n");
+        close(sockfd);
+        return -1;
+     }
+
+     //Receive a reply from the server
+     if (read(sockfd, server_msg, 80) < 0) {
+         printf("Recv failed \n");
+         close(sockfd);
+         return -1;
+     }
+
+     printf("Received from server '%s' \n", server_msg);
+
+     close(sockfd);
+
+     return 0;
 }
