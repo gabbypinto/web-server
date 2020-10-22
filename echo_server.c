@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+//connect() is in the client and we DON't HAVE select()
+
 char* parse(char* line)
 {
   /* Find out where everything is */
@@ -60,13 +62,6 @@ void *client_handler(void *arg)
     {
         msg[strlen(msg)-1] = '\0';
         //grabbing input
-        //input = (char*)malloc(25*sizeof(char));
-      //  for(int i=0; i<25;i++){
-          //scanf("%c",input+i);
-      //  }
-
-        //parse http request....in client_handler???
-        //printf("%s",parse(input));
         path = parse(msg);
         //printf("path:%s\n", path);
         //ensure well formatted request (later)
@@ -91,13 +86,6 @@ void *client_handler(void *arg)
           printf("opened\n");
         }
 
-//fread
-        // fsize = ftell(f);
-        // if (fsize == -1) {
-        //     perror("The file size was not retrieved");
-        //     exit(1);
-        // }
-        // rewind(f);
         char data[100];
 
         char *msg = (char*) malloc(fsize);
