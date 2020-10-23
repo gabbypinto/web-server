@@ -8,8 +8,48 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
+#include <stdbool.h>
+
 
 //connect() is in the client and we DON't HAVE select()
+int compare_str(char* first, char* second){
+  while(*first == *second){
+    if(*first == '\0' ||*second == '\0' ){
+      break;
+    }
+    first++;
+    second++;
+
+  }
+  if(*first == '\0' && *second == '\0'){
+    return 0;
+  }
+  else{
+    return -1;
+  }
+}
+
+bool format_check(char* msg){
+  int check=strcmp(".html HTTP/1.1", ".html HTTP/1.1");
+  printf("CHeck:%d\n", check);
+  char* get = "GET /";
+  char* http = ".html HTTP/1.1";
+  int getInt=0;
+  int getHttp=0;
+
+  printf("here\n");
+  char *t=msg;
+  for (t; *t != '\0';t++){
+    int check2=compare_str(t, http);
+
+    printf("%d\n",check2);
+  }
+  printf("int check:\n%d", getHttp);
+  if(getInt ==1&& getHttp==1)
+    return true;
+  return false;
+}
 
 char* parse(char* line)
 {
@@ -57,11 +97,13 @@ void *client_handler(void *arg)
     char* path;
     char* fname;
 
+    //msg[] = "GET /index.html HTTP/1.1";
 
     if (read(sockfd, msg, 100) > 0)
     {
         msg[strlen(msg)-1] = '\0';
         //grabbing input
+        format_check(msg);
         path = parse(msg);
         //printf("path:%s\n", path);
         //ensure well formatted request (later)
@@ -91,15 +133,16 @@ void *client_handler(void *arg)
         char *msg = (char*) malloc(fsize);
         while (fgets(data,100,f) != NULL){
           /* echo message back to client */
-          printf("%s",data);
+          //printf("%s",data);
           write(sockfd, data, strlen(data));
 
         }
         printf("\n");
+        //open(fname, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         //printf("Received message: %s \n", msg);
         fclose(f);
-    }
-    close(sockfd);
+   }
+   close(sockfd);
 }
 
 int main(int argc, char *argv[])

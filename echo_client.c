@@ -58,7 +58,6 @@ int main(int argc , char *argv[])
      }
 
      printf("Received from server '%s' \n", server_msg);
-
      close(sockfd);
 
      return 0;
