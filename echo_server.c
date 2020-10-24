@@ -21,6 +21,7 @@ int compare_str(char* first, char* second){
     second++;
 
   }
+
   if(*first == '\0' && *second == '\0'){
     return 0;
   }
@@ -44,7 +45,7 @@ bool format_check(char* msg){
 
     printf("%d\n",check2);
   }
-  printf("int check:\n%d", getHttp);
+  //printf("int check:\n%d", getHttp);
   if(getInt ==1&& getHttp==1)
     return true;
   return false;
@@ -77,15 +78,32 @@ char* parse(char* line)
 
 char* removeSlash(char *fname)
 {
+  printf("hi there: %c\n",*fname);
+  char *fname2;
+  //strncpy fname to fname2
+  //start at 1
+  // destination = file
+  //   fname2=fname;
+    //strncpy(fname2,&fname[1],strlen(fname)-1);
+    for(int i=0; i<11;i++){
+    //  printf("fname[i+1]%c\n", fname[i+1]);
+      fname2[i]=fname[i+1];
+    //  printf("fname2[1]%c\n", fname2[i]);
+    //  printf("hello\n");
+    }
   //printf("Before%s\n",fname);
-  if (fname[0] == '/')
-    fname++;
+  // if (fname2[0] == '/'){
+  //   //fname[0]='\0';
+  //   fname2[0]="\0";
+  // }
 
-    fname[strlen(fname)-1] = 0;
 
 
-  printf("%s\n",fname);
-  return fname;
+printf("fname 2: %s\n",fname2);
+  // printf("fname in function:%s\n",fname);
+  // if(fname[strlen(fname)]!='\0')
+  //   fname[strlen(fname)]='\0';
+  return fname2;
 }
 
 
@@ -93,65 +111,78 @@ void *client_handler(void *arg)
 {
 
     char msg[100];
+    char data[100];  //file data
     int sockfd;
     sockfd = *(int *)arg;
     char* input;
-    char* path;
-    char* fname;
+    char* path=NULL;
+    char* fname=NULL;
     char* httpOK = "HTTP/1.1 200 OK\r\n";
+    char* httpNotFound = "HTTP/1.1 404 Not Found\r\n";
     //msg[] = "GET /index.html HTTP/1.1";
 
-//"HTTP/1.1 404 Not Found\r\n\:
+
 //"<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n"
     if (read(sockfd, msg, 100) > 0)
     {
-        msg[strlen(msg)-1] = '\0';
-        //grabbing input
-        format_check(msg);
-        path = parse(msg);
-        //printf("path:%s\n", path);
-        //ensure well formatted request (later)
-        fname=removeSlash(path);
-        //printf("fname:%s\n", fname);
+        int n = 11;
+        char* somechars;
 
-        //dettermine if target file exists = index.html
-        if( access(fname, F_OK ) != -1 ) {        // file exists
+        somechars = (char*)malloc(n*sizeof(char));
+        msg[strlen(msg)-1] = '\0';
+        format_check(msg);  //grabbing input
+        path = parse(msg);  //parse...which returns /<htmlFileName>.html
+        printf("path:%s\n", path);
+
+        //returns fileName only...
+        for(int i=0; i<12;i++){
+          if (path[i+1] == '\0'){
+              break;
+          }
+          printf("path[i+1]%c\n", path[i+1]);
+          somechars[i] = path[i+1];
+        }
+        printf("%s\n",&path[1]);
+        printf("somechars:%s \n",somechars);
+
+        //determine if target file exists = index.html
+        if( access(somechars, F_OK ) != -1 ) {        // file exists
           printf("exists\n");
-        } else {    // file doesn't exist
+        } else {                                      // file doesn't exist
           printf("doesn't exists\n");
         }
 
-  ///
         long fsize;
-        printf("%s",fname);
-        FILE *f = fopen(fname, "rb");
+        printf("fileName:%s",somechars);
+        FILE *f = fopen(somechars, "rb");
         if (!f){
             perror("The file was not opened\n");
-            exit(1);
+            write(sockfd,httpNotFound,strlen(httpNotFound));
+            write(sockfd,"\r\n",2);
+            //exit(1);
         }
         else{
+          //send the header
+          write(sockfd,httpOK,strlen(httpOK));
+          write(sockfd,"\r\n",2);
           printf("opened\n");
         }
 
-        char data[100];
-
         char *msg = (char*) malloc(fsize);
-        //send the header
-        write(sockfd,httpOK,strlen(httpOK));
-        write(sockfd,"\r\n",2);
+
+
         while (fgets(data,100,f) != NULL){
           /* echo message back to client */
-          //printf("%s",data);
           write(sockfd, data, strlen(data));
 
         }
         write(sockfd,"\r\n",2);
         printf("\n");
-        //open(fname, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         //printf("Received message: %s \n", msg);
         fclose(f);
    }
    sleep(5);
+   //man -s 2 read
    close(sockfd);
 }
 
