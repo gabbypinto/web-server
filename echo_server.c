@@ -53,6 +53,7 @@ bool format_check(char* msg){
 
 char* parse(char* line)
 {
+    printf("line: %s\n",line);
   /* Find out where everything is */
     char *start_of_path = strchr(line, ' ') + 1;
     char *start_of_query = strchr(start_of_path, ' ');
@@ -76,41 +77,10 @@ char* parse(char* line)
     return path;
 }
 
-char* removeSlash(char *fname)
-{
-  printf("hi there: %c\n",*fname);
-  char *fname2;
-  //strncpy fname to fname2
-  //start at 1
-  // destination = file
-  //   fname2=fname;
-    //strncpy(fname2,&fname[1],strlen(fname)-1);
-    for(int i=0; i<11;i++){
-    //  printf("fname[i+1]%c\n", fname[i+1]);
-      fname2[i]=fname[i+1];
-    //  printf("fname2[1]%c\n", fname2[i]);
-    //  printf("hello\n");
-    }
-  //printf("Before%s\n",fname);
-  // if (fname2[0] == '/'){
-  //   //fname[0]='\0';
-  //   fname2[0]="\0";
-  // }
-
-
-
-printf("fname 2: %s\n",fname2);
-  // printf("fname in function:%s\n",fname);
-  // if(fname[strlen(fname)]!='\0')
-  //   fname[strlen(fname)]='\0';
-  return fname2;
-}
-
 
 void *client_handler(void *arg)
 {
-
-    char msg[100];
+    char msg[100];    //"GET /index.html HTTP/1.1";
     char data[100];  //file data
     int sockfd;
     sockfd = *(int *)arg;
@@ -119,10 +89,8 @@ void *client_handler(void *arg)
     char* fname=NULL;
     char* httpOK = "HTTP/1.1 200 OK\r\n";
     char* httpNotFound = "HTTP/1.1 404 Not Found\r\n";
-    //msg[] = "GET /index.html HTTP/1.1";
+    char notFoundmsg[] = "<html><head><title>404 No File Found.</title></head><body><h1>404 FILE NOT FOUND.</h1</body></html>";
 
-
-//"<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n"
     if (read(sockfd, msg, 100) > 0)
     {
         int n = 11;
@@ -134,55 +102,62 @@ void *client_handler(void *arg)
         path = parse(msg);  //parse...which returns /<htmlFileName>.html
         printf("path:%s\n", path);
 
-        //returns fileName only...
-        for(int i=0; i<12;i++){
-          if (path[i+1] == '\0'){
-              break;
-          }
-          printf("path[i+1]%c\n", path[i+1]);
-          somechars[i] = path[i+1];
-        }
-        printf("%s\n",&path[1]);
-        printf("somechars:%s \n",somechars);
+        if(strcmp("/",path) == 0){
 
-        //determine if target file exists = index.html
-        if( access(somechars, F_OK ) != -1 ) {        // file exists
-          printf("exists\n");
-        } else {                                      // file doesn't exist
-          printf("doesn't exists\n");
-        }
-
-        long fsize;
-        printf("fileName:%s",somechars);
-        FILE *f = fopen(somechars, "rb");
-        if (!f){
-            perror("The file was not opened\n");
-            write(sockfd,httpNotFound,strlen(httpNotFound));
-            write(sockfd,"\r\n",2);
-            //exit(1);
+          printf("here");
+          somechars = "index.html";
         }
         else{
+          //returns fileName only...
+          for(int i=0; i<12;i++){
+            if (path[i+1] == '\0'){
+                break;
+            }
+            printf("path[i+1]%c\n", path[i+1]);
+            somechars[i] = path[i+1];
+          }
+          printf("%s \n",&path[1]);
+          printf("somechars:%s \n",somechars);
+        }
+
+        //determine if target file exists (in GET command)
+        if( access(somechars, F_OK ) != -1 ) {
+          // file exists
+          FILE *f = fopen(somechars, "rb");
+          long fsize;
+          printf("exists\n");
           //send the header
           write(sockfd,httpOK,strlen(httpOK));
           write(sockfd,"\r\n",2);
           printf("opened\n");
+
+          while (fgets(data,100,f) != NULL){
+            /* echo message back to client */
+            write(sockfd, data, strlen(data));
+          }
+          fclose(f);
+
+        } else {
+          // file doesn't exist
+          printf("doesn't exist\n");
+
+          //send the HTML header
+          write(sockfd,httpNotFound,strlen(httpNotFound));
+          write(sockfd,"\r\n",2);
+
+          //404 HTML Message
+          write(sockfd,notFoundmsg,strlen(notFoundmsg));
         }
 
-        char *msg = (char*) malloc(fsize);
+        //char *msg = (char*) malloc(fsize);
 
-
-        while (fgets(data,100,f) != NULL){
-          /* echo message back to client */
-          write(sockfd, data, strlen(data));
-
-        }
         write(sockfd,"\r\n",2);
         printf("\n");
         //printf("Received message: %s \n", msg);
-        fclose(f);
    }
-   sleep(5);
+   // sleep(20);
    //man -s 2 read
+   
    close(sockfd);
 }
 
