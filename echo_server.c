@@ -12,7 +12,6 @@
 #include <stdbool.h>
 
 
-//connect() is in the client and we DON't HAVE select()
 int compare_str(char* first, char* second){
   while(*first == *second){
     if(*first == '\0' ||*second == '\0' ){
@@ -82,7 +81,10 @@ char* removeSlash(char *fname)
   if (fname[0] == '/')
     fname++;
 
-  //printf("%s\n",fname);
+    fname[strlen(fname)-1] = 0;
+
+
+  printf("%s\n",fname);
   return fname;
 }
 
@@ -96,9 +98,11 @@ void *client_handler(void *arg)
     char* input;
     char* path;
     char* fname;
-
+    char* httpOK = "HTTP/1.1 200 OK\r\n";
     //msg[] = "GET /index.html HTTP/1.1";
 
+//"HTTP/1.1 404 Not Found\r\n\:
+//"<html><head></head><body><h1>404 Not Found</h1></body></html>\r\n"
     if (read(sockfd, msg, 100) > 0)
     {
         msg[strlen(msg)-1] = '\0';
@@ -119,7 +123,8 @@ void *client_handler(void *arg)
 
   ///
         long fsize;
-        FILE *f = fopen("index.html", "rb");
+        printf("%s",fname);
+        FILE *f = fopen(fname, "rb");
         if (!f){
             perror("The file was not opened\n");
             exit(1);
@@ -131,17 +136,22 @@ void *client_handler(void *arg)
         char data[100];
 
         char *msg = (char*) malloc(fsize);
+        //send the header
+        write(sockfd,httpOK,strlen(httpOK));
+        write(sockfd,"\r\n",2);
         while (fgets(data,100,f) != NULL){
           /* echo message back to client */
           //printf("%s",data);
           write(sockfd, data, strlen(data));
 
         }
+        write(sockfd,"\r\n",2);
         printf("\n");
         //open(fname, O_WRONLY | O_CREAT | O_TRUNC,S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
         //printf("Received message: %s \n", msg);
         fclose(f);
    }
+   sleep(5);
    close(sockfd);
 }
 
