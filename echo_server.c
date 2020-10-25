@@ -11,49 +11,35 @@
 #include <fcntl.h>
 #include <stdbool.h>
 
-
-int compare_str(char* first, char* second){
-  while(*first == *second){
-    if(*first == '\0' ||*second == '\0' ){
-      break;
-    }
-    first++;
-    second++;
-
-  }
-
-  if(*first == '\0' && *second == '\0'){
-    return 0;
-  }
-  else{
-    return -1;
-  }
-}
-
 bool format_check(char* msg){
-  int check=strcmp(".html HTTP/1.1", ".html HTTP/1.1");
-  printf("CHeck:%d\n", check);
+  int n = 9;
+  char* checkGet=(char*)malloc(n*sizeof(char));
+  char* checkHttp=(char*)malloc(n*sizeof(char));
   char* get = "GET /";
-  char* http = ".html HTTP/1.1";
-  int getInt=0;
-  int getHttp=0;
+  char* http = "1.1/PTTH";
+  int i;
 
-  printf("here\n");
-  char *t=msg;
-  for (t; *t != '\0';t++){
-    int check2=compare_str(t, http);
-
-    printf("%d\n",check2);
+  for(i=0; i<5;i++){
+    checkGet[i] = msg[i];
   }
-  //printf("int check:\n%d", getHttp);
-  if(getInt ==1&& getHttp==1)
-    return true;
-  return false;
+  if(strcmp(get,checkGet) != 0){
+    return false;
+  }
+  int j = strlen(msg)-2;//24
+  int count=0;
+  for (;j>strlen(msg)-10;j--){
+    checkHttp[count] = msg[j];
+    count++;
+  }
+
+  if(strcmp(http,checkHttp) != 0){
+    return false;
+  }
+  return true;
 }
 
 char* parse(char* line)
 {
-    printf("line: %s\n",line);
   /* Find out where everything is */
     char *start_of_path = strchr(line, ' ') + 1;
     char *start_of_query = strchr(start_of_path, ' ');
@@ -74,7 +60,8 @@ char* parse(char* line)
     /*Print */
     //printf("%s\n", query, sizeof(query));
     //printf("%s\n", path, sizeof(path));
-    return path;
+    char* pathRet = path;
+    return pathRet;
 }
 
 
@@ -95,16 +82,21 @@ void *client_handler(void *arg)
     {
         int n = 11;
         char* somechars;
-
         somechars = (char*)malloc(n*sizeof(char));
         msg[strlen(msg)-1] = '\0';
-        format_check(msg);  //grabbing input
+
+        //printf("message:%s/n", msg);
+        bool format =format_check(msg);
+        if(format==false){//check format of message
+          printf("If using telnet, incorrect format\n");
+          perror("incorrect format\n");
+          close(sockfd);
+          exit(1);
+        }
+
         path = parse(msg);  //parse...which returns /<htmlFileName>.html
-        printf("path:%s\n", path);
 
         if(strcmp("/",path) == 0){
-
-          printf("here");
           somechars = "index.html";
         }
         else{
@@ -113,11 +105,8 @@ void *client_handler(void *arg)
             if (path[i+1] == '\0'){
                 break;
             }
-            printf("path[i+1]%c\n", path[i+1]);
             somechars[i] = path[i+1];
           }
-          printf("%s \n",&path[1]);
-          printf("somechars:%s \n",somechars);
         }
 
         //determine if target file exists (in GET command)
@@ -125,11 +114,9 @@ void *client_handler(void *arg)
           // file exists
           FILE *f = fopen(somechars, "rb");
           long fsize;
-          printf("exists\n");
           //send the header
           write(sockfd,httpOK,strlen(httpOK));
           write(sockfd,"\r\n",2);
-          printf("opened\n");
 
           while (fgets(data,100,f) != NULL){
             /* echo message back to client */
@@ -139,25 +126,19 @@ void *client_handler(void *arg)
 
         } else {
           // file doesn't exist
-          printf("doesn't exist\n");
-
           //send the HTML header
           write(sockfd,httpNotFound,strlen(httpNotFound));
           write(sockfd,"\r\n",2);
-
           //404 HTML Message
           write(sockfd,notFoundmsg,strlen(notFoundmsg));
         }
 
-        //char *msg = (char*) malloc(fsize);
-
         write(sockfd,"\r\n",2);
         printf("\n");
-        //printf("Received message: %s \n", msg);
    }
-   // sleep(20);
+   sleep(60);
    //man -s 2 read
-   
+
    close(sockfd);
 }
 
