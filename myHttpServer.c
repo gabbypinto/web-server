@@ -1,3 +1,6 @@
+
+//Gabriela Pinto and Katherine Hansen
+//2318655 and 2326665
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,22 +22,26 @@ bool format_check(char* msg){
   char* http = "1.1/PTTH";
   int i;
 
+  //checking to see if beginning matches get
   for(i=0; i<5;i++){
     checkGet[i] = msg[i];
   }
+  //comparing if they match
   if(strcmp(get,checkGet) != 0){
     return false;
   }
+  //checking to see if end matches http
   int j = strlen(msg)-2;//24
   int count=0;
   for (;j>strlen(msg)-10;j--){
     checkHttp[count] = msg[j];
     count++;
   }
-
+  //comparing if they match
   if(strcmp(http,checkHttp) != 0){
     return false;
   }
+  //if both match, it is true
   return true;
 }
 
@@ -43,23 +50,13 @@ char* parse(char* line)
   /* Find out where everything is */
     char *start_of_path = strchr(line, ' ') + 1;
     char *start_of_query = strchr(start_of_path, ' ');
-
-    /* Get the right amount of memory */
     char path[start_of_query - start_of_path];
-    //char query[end_of_query - start_of_query];
-
-
-    /* Copy the strings into our memory */
+    //copying strings
     strncpy(path, start_of_path,  start_of_query - start_of_path);
-    //strncpy(query, start_of_query, end_of_query - start_of_query);
 
-    /* Null terminators (because strncpy does not provide them) */
+    // Null terminators (because strncpy does not provide them)
     path[sizeof(path)] = 0;
-    //query[sizeof(query)] = 0;
 
-    /*Print */
-    //printf("%s\n", query, sizeof(query));
-    //printf("%s\n", path, sizeof(path));
     char* pathRet = path;
     return pathRet;
 }
@@ -84,14 +81,18 @@ void *client_handler(void *arg)
         char* somechars;
         somechars = (char*)malloc(n*sizeof(char));
         msg[strlen(msg)-1] = '\0';
+        printf("%s", msg);
 
-        //printf("message:%s/n", msg);
+
         bool format =format_check(msg);
         if(format==false){//check format of message
+          //to run on a browser, comment out the 5 lines below :)
           printf("If using telnet, incorrect format\n");
           perror("incorrect format\n");
+          printf("Exiting...\n");
           close(sockfd);
           exit(1);
+
         }
 
         path = parse(msg);  //parse...which returns /<htmlFileName>.html
