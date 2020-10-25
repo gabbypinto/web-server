@@ -1,10 +1,10 @@
 # web-server
 
 #### To run:
-- gcc echo_server.c -o echo_server -lpthread
-- ./echo_server ip-address port number
+- gcc myHttpServer.c -o myHttpServer -lpthread
+- ./myHttpServer ip-address port number
 - Our program works on Firefox, and the 404 error works on Chrome
-  
+
 
 #### Known Errors
 When we did error checking, we found that messages that came through telnet had different lengths than messages that came through a browser. <br />
